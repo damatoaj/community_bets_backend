@@ -1,0 +1,10 @@
+import { Router } from 'express';
+const authCtrl = require('../controllers/auth/auth');
+const authRouter = Router();
+authRouter.post('/signup', authCtrl.signup);
+authRouter.post('/login', authCtrl.login);
+authRouter.get('/logout', authCtrl.logout);
+authRouter.get('/email-validation', authCtrl.emailValidation);
+authRouter.get('/reset_password_request', authCtrl.resetPasswordRequest);
+authRouter.post('/reset_password', authCtrl.resetPassword);
+module.exports = authRouter;
