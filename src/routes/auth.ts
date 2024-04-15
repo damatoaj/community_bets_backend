@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import *  as authCtrl from '../controllers/auth/auth.js';
 import passport from 'passport';
+
 const authRouter : Router = Router();
 
 authRouter.post('/signup', authCtrl.signup);

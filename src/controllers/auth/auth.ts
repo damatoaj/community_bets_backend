@@ -5,6 +5,10 @@ import mongoose from 'mongoose';
 import createUserToken   from '../../middleware/passport.js'
 import crypto from 'crypto';
 
+export interface IGetUserAuthInfoRequest extends Request {
+    user: any
+};
+
 async function createUsername(first_name:string, last_name: string) {
     const countQuery = await UserModel.where({ first_name: first_name.toLocaleLowerCase(), last_name: last_name.toLowerCase() }).countDocuments();
     return `@${first_name.toLocaleLowerCase()}-${last_name.toLowerCase()}-${countQuery}`
@@ -265,9 +269,17 @@ const emailValidation = async (req: Request, res: Response) => {
 
 const logout = async (req: Request, res: Response) => {
     try {
-        console.log(req);
+        let u : any = req.user;
 
-        res.status(200).send('logout success');
+        if (!u.email) throw new Error('Invalid Request');
+
+        const user : User | null = await UserModel.where({email : u.email.trim().toLowerCase()}).findOne();
+
+        if (!user) throw new Error('Email And Password Do Not Match');
+
+        delete user.refreshToken;
+        user.save;
+        res.status(200).send('Logout Success');
 
     } catch (e: unknown) {
         if (e instanceof Error) {
