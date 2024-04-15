@@ -14,9 +14,11 @@ const getUser = async (req : Request, res: Response) => {
             throw new Error('Invalid Request')
         };
 
+        let user : any | null = null;
+
         if (u._id === p.id) {
             //return the user their own data
-            const self = await UserModel.findById(p.id).select([
+            user = await UserModel.findById(p.id).select([
                 'email',
                 'username',
                 '_id',
@@ -26,25 +28,27 @@ const getUser = async (req : Request, res: Response) => {
                 'birthday',
                 'phone',
             ]);
-
-            if (!self) throw new Error('Problem Retrieving Your Data');
-
-            res.status(200).send({self});
         } else {
-            const friend = await UserModel.findById(p.id).select([
+            user = await UserModel.findById(p.id).select([
                 'username',
                 'first_name',
                 'last_name',
                 'birthday'
             ]);
-
-            if (!friend) throw new Error('Cannot find friend');
-
-            res.status(200).send({friend});
         };
-    } catch (e: any) {
-        res.send(e)
-    }
+        if (!user || user === null) throw new Error('Problem Retrieving User');
+
+        res.status(200).send({user});
+    } catch (e: unknown) {
+        console.log(e)
+        if (e instanceof Error) {
+            if (e.message === 'Problem Retrieving User') {
+                res.status(404).send(e.message);
+            } else {
+                res.status(400).send(e.message);
+            };
+        };
+    };
 };
 
 const patchUser = (req : Request, res: Response) => {};
