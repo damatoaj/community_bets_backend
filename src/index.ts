@@ -25,7 +25,8 @@ const options: StrategyOptions = {
 };
 
 const findUser = async (jwt_payload:any, done:any) => {
-  const user = await UserModel.findOne({email: jwt_payload.email})
+  console.log('jwt: ', jwt_payload)
+  const user = await UserModel.findOne({_id : jwt_payload._id});
   if (user) {
     return (done(null,user));
   }
