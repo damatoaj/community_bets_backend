@@ -75,6 +75,8 @@ const patchUser = async (req : Request, res: Response) => {
             keys.includes('referrals') ||
             keys.includes('referred_by') ||
             keys.includes('tc') ||
+            keys.includes('active') ||
+            keys.includes('test') ||
             !keys.includes('latitude') ||
             !keys.includes('longitude') ||
             !keys.includes('timestamp')
@@ -116,11 +118,39 @@ const patchUser = async (req : Request, res: Response) => {
 
 const deleteUser = (req : Request, res: Response) => {};
 
-const deactivateUser = (req : Request, res: Response) => {};
+const deactivateUser = async (req : Request, res: Response) => {
+    try {
+        console.log(req, "< --- req")
+        const { p, u } = validateIncomingUser(req);
+        if (p !== u ) throw new Error('Unauthorized Request');
+        console.log('step 2: success')
+        let user : any | null = await UserModel.findById(p).select([
+            'active'
+        ]);
+        console.log(user, '<--')
+        user.active = false;
+        user.save();
+
+        res.status(200).send('Deactivation success, you can reactivate an account any time');
+
+    } catch(e: unknown) {
+        if (e instanceof Error) {
+            if (e.message === 'Problem Retrieving User') {
+                res.status(404).send(e.message);
+            } else if (e.message === 'Unauthorized Request'){
+                res.status(401).send(e.message);
+            } else {
+                res.status(400).send(e.message);
+            };
+        };
+    }
+
+};
 
 const reactivateUser = (req : Request, res: Response) => {};
 
 export {
     getUser,
-    patchUser
+    patchUser,
+    deactivateUser
 }

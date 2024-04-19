@@ -11,6 +11,7 @@ interface IUser extends Document {
     birthday: string;
     password: string;
     phone: number;
+    active: boolean;
     address : {
         line_1: string;
         line_2?: string;
@@ -49,7 +50,7 @@ const userSchema = new Schema<IUser>({
     phone: {type: Number, required: true},
     referred_by: {type: String, required: false, trim: true},
     referrals: {type: [String], required: false},
-    test: {type: Boolean, required: true},
+    test: {type: Boolean, required: true, default: false},
     wallet: {type: [String], required: true},
     address: {
         line_1: {type: String, required: true, lowercase: true, trim: true},
@@ -65,7 +66,8 @@ const userSchema = new Schema<IUser>({
         long:{type: Number, required: true},
         timestamp: {type: Number, required: true}
     },
-    refreshToken: {type: String, required: false}
+    refreshToken: {type: String, required: false},
+    active: {type:Boolean, required: true, default: true}
 }, options);
 
 type User = InferSchemaType<typeof userSchema>;

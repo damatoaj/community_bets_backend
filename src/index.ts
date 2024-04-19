@@ -1,5 +1,5 @@
 import express from 'express';
-import type { Response } from 'express';
+import type { Response, ErrorRequestHandler, Request, NextFunction } from 'express';
 import authRouter from './routes/auth.js';
 import userRouter from './routes/user.js';
 import cors from 'cors';
@@ -61,11 +61,10 @@ app.use(express.json());
 app.use('/', authRouter);
 app.use('/', userRouter);
 
-// Add this error handling middleware
-// app.use((err: Error, res: Response) => {
-//   console.error(err.stack);
-//   res.status(500).send('Something went wrong');
-// });
+//Add this error handling middleware
+app.use((error: ErrorRequestHandler, request: Request, response: Response, next: NextFunction) => {
+  response.status(500).end()
+})
 
 app.listen(port, () => {
   console.log(`Server running at port ${port}`);
