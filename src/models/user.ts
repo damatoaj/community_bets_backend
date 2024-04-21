@@ -26,7 +26,6 @@ interface IUser extends Document {
     },
     referred_by?: string; //referrer's username
     referrals: [string]; //list of usernames
-    wallet: [string]; //the methods they can fulfill bets
     test: boolean; //enbale test mode for development
     ips: [string];
     refreshToken?: string;
@@ -51,7 +50,6 @@ const userSchema = new Schema<IUser>({
     referred_by: {type: String, required: false, trim: true},
     referrals: {type: [String], required: false},
     test: {type: Boolean, required: true, default: false},
-    wallet: {type: [String], required: true},
     address: {
         line_1: {type: String, required: true, lowercase: true, trim: true},
         line_2: {type: String, required: false, lowercase: true, trim: true},

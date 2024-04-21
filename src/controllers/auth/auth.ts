@@ -204,6 +204,7 @@ const signup = async (req: Request, res: Response) => {
         const token = await createUserToken(req, user, res);
 
         res.status(201).send({token, user: {
+            _id: user._id,
             email: req.body.email,
             first_name:  req.body.first_name,
             last_name:  req.body.last_name,
@@ -250,13 +251,6 @@ const login = async (req: Request, res: Response) => {
         if (user.active === false) throw new Error('Account Deactivated');
         
         const token : string = await createUserToken(req, user, res);
-        // const refreshToken : string = await crypto.randomBytes(64).toString('hex');
-        // if (refreshToken) {
-        //     user.refreshToken = refreshToken;
-        //     user.save();
-        // } else {
-        //     throw new Error('Error Making Refresh Token');
-        // };
 
         res.status(201).send( {token });
     } catch (e: unknown) {
@@ -324,11 +318,8 @@ const resetPassword = async (req: Request, res: Response) => {
 
 const token = async (req: Request, res: Response) => {
     try {
-        console.log(req.headers['cookie'], '<--- cookie')
-        console.log(req.user, '<-- user')
-        // if (!req.user || !req.headers['cookie']) throw new Error('Unauthorized');
         const refreshToken : string= (<string>req.headers['cookie'])
-        console.log('refresh token: ', refreshToken)
+
         jwt.verify(refreshToken.split('=')[1], process.env.REFRESH_TOKEN_SECRET || 'ljlkjadsnf.amnfkjjrljk');
 
         const accessToken = jwt.sign({
@@ -336,11 +327,12 @@ const token = async (req: Request, res: Response) => {
         }, process.env.ACCESS_TOKEN_SECRET || 'DEVsdfamsfnbasnmfbsoqwer', {
             expiresIn: '5m'
         });
-        console.log(accessToken, '<--- token')
+
         res.status(201).send({accessToken});
     } catch (e) {
-        console.error(e);
-        res.send(e)
+        if (e instanceof Error) {
+            res.status(400).send(e.message);
+        };
     };
 };
 

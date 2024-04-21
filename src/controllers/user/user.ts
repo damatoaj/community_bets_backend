@@ -155,8 +155,7 @@ const deactivateUser = async (req : Request, res: Response) => {
                 res.status(400).send(e.message);
             };
         };
-    }
-
+    };
 };
 
 const reactivateUser = (req : Request, res: Response) => {};
@@ -164,5 +163,6 @@ const reactivateUser = (req : Request, res: Response) => {};
 export {
     getUser,
     patchUser,
-    deactivateUser
-}
+    deactivateUser,
+    validateIncomingUser
+};
