@@ -7,6 +7,7 @@ import crypto from 'crypto';
 import { BlackListedTokenModel } from '../../models/blackListedTokens.js';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
+import { WalletModel, Wallet } from '../../models/wallets.js';
 dotenv.config();
 
 export interface IGetUserAuthInfoRequest extends Request {
@@ -198,6 +199,8 @@ const signup = async (req: Request, res: Response) => {
         console.log(user);
         user.save();
 
+        let wallet : Wallet | null = await new WalletModel({ userId : user._id, points: 0, methods:[{title:'Manual'}] })
+
         const token = await createUserToken(req, user, res);
 
         res.status(201).send({token, user: {
@@ -212,7 +215,7 @@ const signup = async (req: Request, res: Response) => {
             country: req.body.country,
             birthday: req.body.birthday,
             cell_phone: formatPhoneNumber(req.body.cell_phone)
-        },
+        }, wallet
         });
     } catch (e : unknown) {
         if (e instanceof Error) {
