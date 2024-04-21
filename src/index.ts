@@ -9,7 +9,8 @@ import passport from 'passport';
 import { ExtractJwt, Strategy, StrategyOptions } from 'passport-jwt';
 import { UserModel } from './models/user.js';
 import jwt from 'jsonwebtoken';
-
+import { BlackListedToken, BlackListedTokenModel } from './models/blackListedTokens.js';
+import { User } from './models/user.js';
 //Initialize Configurations
 dotenv.config()
 
@@ -26,7 +27,7 @@ const options: StrategyOptions = {
 
 const findUser = async (jwt_payload:any, done:any) => {
   console.log('jwt: ', jwt_payload)
-  const user = await UserModel.findOne({_id : jwt_payload._id});
+  const user : User | null = await UserModel.findOne({_id : jwt_payload._id});
   if (user) {
     return (done(null,user));
   }

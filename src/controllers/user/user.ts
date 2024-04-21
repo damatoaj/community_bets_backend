@@ -1,5 +1,6 @@
 import { UserModel } from '../../models/user.js';
-import { Request, Response } from 'express';
+import { BlackListedTokenModel, BlackListedToken } from '../../models/blackListedTokens.js';
+import { Request, Response, NextFunction } from 'express';
 
 function validateIncomingUser(req : any) : { p : string, u : string} {
     let u : any = req.user;
@@ -16,6 +17,11 @@ function validateIncomingUser(req : any) : { p : string, u : string} {
     return { p: p.id, u: u._id };
 };
 
+async function checkToken(req: Request, res: Response, next: NextFunction) {
+    const BLT : BlackListedToken | null = await BlackListedTokenModel.findOne({token: req.headers['authorization']?.split(' ')[1]})
+    if (!BLT) next();
+    res.redirect('/');
+};
 const getUser = async (req : Request, res: Response) => {
     try {
         const { p, u } = validateIncomingUser(req);
@@ -120,18 +126,24 @@ const deleteUser = (req : Request, res: Response) => {};
 
 const deactivateUser = async (req : Request, res: Response) => {
     try {
-        console.log(req, "< --- req")
+        if (req.headers['content-type'] !== 'application/json') throw new TypeError('Content Type Must Be application/json');
         const { p, u } = validateIncomingUser(req);
         if (p !== u ) throw new Error('Unauthorized Request');
-        console.log('step 2: success')
+
         let user : any | null = await UserModel.findById(p).select([
-            'active'
+            'active',
+            'refreshToken'
         ]);
-        console.log(user, '<--')
+
+        if (req.headers['Authorization'] || req.headers['authorization'] ) {
+            const token = await new BlackListedTokenModel({ token: (<string>req?.headers['Authorization'])?.split(' ')[1] || (<string>req.headers['authorization']).split(' ')[1], expiresAt: Date.now() });
+            token.save();
+        };
         user.active = false;
+        delete user.refreshToken;
         user.save();
 
-        res.status(200).send('Deactivation success, you can reactivate an account any time');
+        res.status(200).redirect('/');
 
     } catch(e: unknown) {
         if (e instanceof Error) {

@@ -4,6 +4,10 @@ import { User, UserModel } from '../../models/user.js';
 import mongoose from 'mongoose';
 import createUserToken   from '../../middleware/passport.js'
 import crypto from 'crypto';
+import { BlackListedTokenModel } from '../../models/blackListedTokens.js';
+import jwt from 'jsonwebtoken';
+import dotenv from 'dotenv';
+dotenv.config();
 
 export interface IGetUserAuthInfoRequest extends Request {
     user: any
@@ -194,7 +198,7 @@ const signup = async (req: Request, res: Response) => {
         console.log(user);
         user.save();
 
-        const token = await createUserToken(req, user);
+        const token = await createUserToken(req, user, res);
 
         res.status(201).send({token, user: {
             email: req.body.email,
@@ -239,17 +243,19 @@ const login = async (req: Request, res: Response) => {
         const match : boolean= await bcrypt.compare(req.body.password.trim(), user.password)
 
         if (!match) throw new Error('Email And Password Do Not Match');
-        
-        const token : string = await createUserToken(req, user);
-        const refreshToken : string = await crypto.randomBytes(64).toString('hex');
-        if (refreshToken) {
-            user.refreshToken = refreshToken;
-            user.save();
-        } else {
-            throw new Error('Error Making Refresh Token');
-        };
 
-        res.status(201).send({token, refreshToken});
+        if (user.active === false) throw new Error('Account Deactivated');
+        
+        const token : string = await createUserToken(req, user, res);
+        // const refreshToken : string = await crypto.randomBytes(64).toString('hex');
+        // if (refreshToken) {
+        //     user.refreshToken = refreshToken;
+        //     user.save();
+        // } else {
+        //     throw new Error('Error Making Refresh Token');
+        // };
+
+        res.status(201).send( {token });
     } catch (e: unknown) {
         if (e instanceof Error) {
             res.status(400).send(e.message);
@@ -277,9 +283,14 @@ const logout = async (req: Request, res: Response) => {
 
         if (!user) throw new Error('Email And Password Do Not Match');
 
+        if (req.headers['Authorization'] || req.headers['authorization'] ) {
+            const token = await new BlackListedTokenModel({ token: (<string>req?.headers['Authorization'])?.split(' ')[1] || (<string>req.headers['authorization']).split(' ')[1], expiresAt: Date.now() });
+            token.save();
+        };
+
         delete user.refreshToken;
         user.save;
-        res.status(200).send('Logout Success');
+        res.status(200).redirect('/');
 
     } catch (e: unknown) {
         if (e instanceof Error) {
@@ -310,17 +321,23 @@ const resetPassword = async (req: Request, res: Response) => {
 
 const token = async (req: Request, res: Response) => {
     try {
-        const { refreshToken } = req.body;
-        if (!token) throw new Error('Token Required');
+        console.log(req.headers['cookie'], '<--- cookie')
+        console.log(req.user, '<-- user')
+        // if (!req.user || !req.headers['cookie']) throw new Error('Unauthorized');
+        const refreshToken : string= (<string>req.headers['cookie'])
+        console.log('refresh token: ', refreshToken)
+        jwt.verify(refreshToken.split('=')[1], process.env.REFRESH_TOKEN_SECRET || 'ljlkjadsnf.amnfkjjrljk');
 
-        const user = await UserModel.findOne({refreshToken: refreshToken});
-        if (!user) throw new Error("Invalid Token");
-
-        const newToken : string = await createUserToken(req, user);
-
-        res.status(201).send({newToken});
+        const accessToken = jwt.sign({
+            _id: (req.user as User)._id,
+        }, process.env.ACCESS_TOKEN_SECRET || 'DEVsdfamsfnbasnmfbsoqwer', {
+            expiresIn: '5m'
+        });
+        console.log(accessToken, '<--- token')
+        res.status(201).send({accessToken});
     } catch (e) {
         console.error(e);
+        res.send(e)
     };
 };
 

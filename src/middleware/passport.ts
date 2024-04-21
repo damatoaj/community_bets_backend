@@ -7,8 +7,9 @@ import passport from 'passport';
 import { ExtractJwt, Strategy, StrategyOptions } from 'passport-jwt';
 import { UserModel, User } from '../models/user.js';
 import jwt from 'jsonwebtoken';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
+import { BlackListedTokenModel } from '../models/blackListedTokens.js';
 
 // Construct the Strategy
 // const options: StrategyOptions = {
@@ -34,8 +35,8 @@ import bcrypt from 'bcrypt';
 // passport.initialize();
 
 // write a function that creates a jwt token
-const createUserToken = (req : Request, user: User) => {
-    if (!req.body.password) throw new Error('Invalid Credentials 🛑');
+const createUserToken = (req : Request, user: User, res: Response) => {
+  if (!req.body.password) throw new Error('Invalid Credentials 🛑');
   // check the password from the req.body against the user
   const validPassword = bcrypt.compareSync(req.body.password, user.password);
 
@@ -45,11 +46,25 @@ const createUserToken = (req : Request, user: User) => {
     // err.statusCode = 422;
     throw err
   } else { // otherwise create and sign a new token
-    return jwt.sign(
+    
+    const accessToken : string = jwt.sign(
       { _id: user._id },
-      process.env.JWT_SECRET || 'DEVsdfamsfnbasnmfbsoqwer',
-      { expiresIn: '24h'} // TODO: extend for production
+      process.env.ACCESS_TOKEN_SECRET || 'DEVsdfamsfnbasnmfbsoqwer',
+      { expiresIn: '5m'} // TODO: extend for production
     );
+
+    const refreshToken : string = jwt.sign(
+      {_id: user._id},
+      process.env.REFRESH_TOKEN_SECRET || 'ljlkjadsnf.amnfkjjrljk',
+      { expiresIn: '24h'}
+    );
+    
+    res.cookie('jwt', refreshToken, {
+      httpOnly: true,
+      sameSite: 'none', secure: true,
+      maxAge: 24 * 60 * 60 * 1000
+    });
+    return accessToken;
   }
 }
 
