@@ -11,6 +11,7 @@ const getWallet = async (req : Request, res: Response) => {
         let status : number = 200;
         if (!wallet) {
             wallet = await new WalletModel({userID:p, points:0, methods:[{title:'Manual'}]});
+            wallet.save();
             status = 201;
         };
 

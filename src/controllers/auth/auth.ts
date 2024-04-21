@@ -8,6 +8,7 @@ import { BlackListedTokenModel } from '../../models/blackListedTokens.js';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 import { WalletModel, Wallet } from '../../models/wallets.js';
+import { Friends, FriendsModel } from '../../models/friends.js';
 dotenv.config();
 
 export interface IGetUserAuthInfoRequest extends Request {
@@ -199,7 +200,17 @@ const signup = async (req: Request, res: Response) => {
         console.log(user);
         user.save();
 
-        let wallet : Wallet | null = await new WalletModel({ userId : user._id, points: 0, methods:[{title:'Manual'}] })
+        let wallet : Wallet | null = await new WalletModel({ 
+            _id: new mongoose.Types.ObjectId(),
+            userId : user._id, points: 0, 
+            methods:[{title:'Manual'}] 
+        });
+
+        let friends : Friends | null = await new FriendsModel({
+            _id: new mongoose.Types.ObjectId(),
+            userId : user._id,
+            friends: []
+        });
 
         const token = await createUserToken(req, user, res);
 
@@ -216,7 +227,7 @@ const signup = async (req: Request, res: Response) => {
             country: req.body.country,
             birthday: req.body.birthday,
             cell_phone: formatPhoneNumber(req.body.cell_phone)
-        }, wallet
+        }, wallet, friends
         });
     } catch (e : unknown) {
         if (e instanceof Error) {

@@ -7,7 +7,6 @@ interface FundingOption extends Document {
 };
 
 interface IWallet extends Document {
-    _id: ObjectId;
     userID: ObjectId;
     points: number;
     methods: [FundingOption];

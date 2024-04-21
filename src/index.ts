@@ -12,6 +12,7 @@ import jwt from 'jsonwebtoken';
 import { BlackListedToken, BlackListedTokenModel } from './models/blackListedTokens.js';
 import { User } from './models/user.js';
 import walletRouter from './routes/wallet.js';
+import friendsRouter from './routes/friends.js';
 //Initialize Configurations
 dotenv.config()
 
@@ -62,7 +63,8 @@ app.use(express.json());
 
 app.use('/', authRouter);
 app.use('/', userRouter);
-app.use('/', walletRouter)
+app.use('/', walletRouter);
+app.use('/', friendsRouter);
 
 //Add this error handling middleware
 app.use((error: ErrorRequestHandler, request: Request, response: Response, next: NextFunction) => {
