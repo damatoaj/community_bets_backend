@@ -1,15 +1,17 @@
 import{ Schema, model, ObjectId, InferSchemaType, Document } from "mongoose";
 //Creating Mongoose database models requires up to five steps
 //1. Define a typescript interface
+interface IF {
+    friendId: ObjectId;
+    status: 0 | 1 | 2 | 3 | 5; //Requested, Accepted, Rejected, Unfriended, Blocked
+    username:string;
+    avatar: string;
+}
+
 interface IFriends extends Document {
     _id: ObjectId;
     userId:ObjectId;
-    friends: [{
-        friendId: ObjectId;
-        status: 0 | 1 | 2 | 3 | 5; //Requested, Accepted, Rejected, Unfriended, Blocked
-        username:string;
-        avatar: string;
-    }]
+    friends: [IF]
 };
 
 //2. Define options if applicable
@@ -31,5 +33,6 @@ const FriendsModel = model<IFriends>('Friends', friendsSchema);
 
 export {
     FriendsModel,
-    Friends
+    Friends,
+    IF
 }

@@ -5,5 +5,6 @@ import * as friendsCtrl from '../controllers/friends/friends.js';
 const friendsRouter = Router();
 
 friendsRouter.get('/friends/:id', passport.authenticate('jwt', { session: false }), friendsCtrl.getMyFriends);
+friendsRouter.post('/friends/:id', passport.authenticate('jwt', { session: false }), friendsCtrl.addFriend);
 
 export default friendsRouter;
