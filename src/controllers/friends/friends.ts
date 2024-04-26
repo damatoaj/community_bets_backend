@@ -34,17 +34,15 @@ const getMyFriends = async (req: Request, res: Response) => {
 
 const addFriend = async (req: Request, res:Response) => {
     try {
-        console.log(req, '<--request')
         const { p, u } = validateIncomingUser(req);
         if (!p || !u) throw new Error('Invalid Parameters');
-        console.log(p, u);
+
         let friend : User | null = await UserModel.findById(p);
         let user : User | null = await UserModel.findById(u);
 
         if (!friend || !user) throw new Error('Problem Retrieving User');
 
         let friends : Friends | null = await FriendsModel.findOne({userId : u});
-
 
         let obj : IF = { 
             friendId: friend._id, 
