@@ -11,7 +11,7 @@ interface IF {
 interface IFriends extends Document {
     _id: ObjectId;
     userId:ObjectId;
-    friends: [IF]
+    friends: IF[];
 };
 
 //2. Define options if applicable

@@ -6,5 +6,5 @@ const friendsRouter = Router();
 
 friendsRouter.get('/friends/:id', passport.authenticate('jwt', { session: false }), friendsCtrl.getMyFriends);
 friendsRouter.post('/friends/:id', passport.authenticate('jwt', { session: false }), friendsCtrl.addFriend);
-
+friendsRouter.delete('/friends/:id', passport.authenticate('jwt', { session: false }), friendsCtrl.cancelFriendRequest)
 export default friendsRouter;
