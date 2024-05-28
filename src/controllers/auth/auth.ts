@@ -9,6 +9,7 @@ import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 import { WalletModel, Wallet } from '../../models/wallets.js';
 import { Friends, FriendsModel } from '../../models/friends.js';
+const bcryptSalt = process.env.BCRYPT_SALT;
 dotenv.config();
 
 export interface IGetUserAuthInfoRequest extends Request {
@@ -311,7 +312,29 @@ const logout = async (req: Request, res: Response) => {
 const resetPasswordRequest = async (req: Request, res: Response) => {
     try {
         console.log(req);
-        res.status(200).send('password reset request success');
+        if (req.headers['content-type'] !== 'application/json') {
+            throw new TypeError('Content Type Must Be application/json')
+        };
+
+        let u : any = req.user;
+
+        if (!u.email) throw new Error('Invalid Request');
+
+        const user : User | null = await UserModel.where({email : u.email.trim().toLowerCase()}).findOne();
+
+        if (!user) throw new Error('User Not Found');
+
+        const resetToken = crypto.randomBytes(32).toString("hex");
+
+        const hash = await bcrypt.hash(resetToken, Number(bcryptSalt));
+
+        user.refreshToken = hash;
+        await user.save();
+
+        const link = `http://localhost:3000/passwordReset?token=${resetToken}&id=${user._id}`;
+
+        //next step is to create email templates and send people a reset email
+        res.status(200).send(link);
     } catch (e) {
         console.error('e');
     };

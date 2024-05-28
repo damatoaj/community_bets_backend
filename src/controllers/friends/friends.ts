@@ -3,6 +3,7 @@ import { Request, Response } from 'express';
 import mongoose from 'mongoose';
 import { UserModel, User } from '../../models/user.js';
 import { validateIncomingUser } from '../user/user.js';
+
 const getMyFriends = async (req: Request, res: Response) => {
     try {
         console.log(req.query)
@@ -130,8 +131,40 @@ const cancelFriendRequest = async (req: Request, res: Response) => {
     };
 };
 
+const updateFriendShip = async (req:Request, res: Response) => {
+    try {
+        const { p, u } = validateIncomingUser(req);
+        if (!p || !u) throw new Error('Invalid Parameters');
+        if (req.headers['content-type'] !== 'application/json') throw new TypeError('Content Type Must Be application/json');
+
+        const keys : Array<string> = Object.keys(req.body);
+
+        if (!keys.includes('status') ||
+        keys.length > 1 ||
+        keys.length === 0
+        ) throw new Error('Missing Required Input');
+        if (req.body.status === 0) throw new Error("Cannot Update Status");
+
+        let friend : User | null = await UserModel.findById(p);
+        let user : User | null = await UserModel.findById(u);
+        res.send(200);
+
+    } catch(e) {
+        if (e instanceof Error) {
+            if (e.message === 'Problem Retrieving User') {
+                res.status(404).send(e.message);
+            } else if (e.message === 'Unauthorized Request'){
+                res.status(401).send(e.message);
+            } else {
+                res.status(400).send(e.message);
+            };
+        };
+    };
+};
+
 export {
     getMyFriends,
     addFriend,
-    cancelFriendRequest
-}
+    cancelFriendRequest,
+    updateFriendShip
+};
